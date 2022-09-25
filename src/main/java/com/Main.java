@@ -10,56 +10,56 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class Main {
+    static int countFile = 0;
+
     public static void main(String[] args) throws IOException, ParseException {
         File file = new File("D:\\Projects\\JsonTree\\src\\main\\resources\\attendees.json");
 
         String jsonString = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
         JSONObject jsonObject = new JSONObject(jsonString);
         JSONArray arrayList = jsonObject.getJSONArray("data");
-        List<Object> objects = new ArrayList<>();
+        Map<Object, Object> map = new LinkedHashMap<>();
 
         for (int i = 0; i < arrayList.length(); i++) {
             JSONObject search = (JSONObject) arrayList.get(i);
-            objects.addAll(analyze(search));
-            readJsonWriteCsv(objects);
+            map.putAll(analyze(search));
+            readJsonWriteCsv(map);
         }
     }
 
-    private static List<Object> analyze(JSONObject search) {
-        List<Object> objectList = new ArrayList<>();
+    private static Map<Object, Object> analyze(JSONObject search) {
+        Map<Object, Object> map = new LinkedHashMap<>();
         Set<String> keys = search.keySet();
 
         for (String key : keys) {
-            objectList.addAll(checkKeysHaveObjectOrArray(key, search));
+            map.putAll(checkKeysHaveObjectOrArray(key, search));
         }
 
-        return objectList;
+        return map;
     }
 
-    private static List<Object> checkKeysHaveObjectOrArray(String key, JSONObject search) {
-        List<Object> objectList = new ArrayList<>();
-        int count = 0;
+    private static Map<Object, Object> checkKeysHaveObjectOrArray(String key, JSONObject search) {
+        Map<Object, Object> map = new LinkedHashMap<>();
         if (search.get(key).getClass() == JSONArray.class) {
             JSONArray array = (JSONArray) search.get(key);
 
             if (array.length() != 0) {
-                objectList.addAll(checkValue(array));
+                map.putAll(checkValue(array));
             }
         } else {
-            objectList.add(count, key);
-            count++;
+            map.put(key, search.get(key));
         }
 
-
-        return objectList;
+        return map;
     }
 
-    static List<Object> checkValue(JSONArray array) {
-        List<Object> objectList = new ArrayList<>();
+    static Map<Object, Object> checkValue(JSONArray array) {
+        Map<Object, Object> map = new LinkedHashMap<>();
         for (int i = 0; i < array.length(); i++) {
 
             if (array.get(i).getClass().equals(JSONObject.class)) {
@@ -69,24 +69,31 @@ public class Main {
 
         }
 
-        return objectList;
+        return map;
     }
 
-    static void readJsonWriteCsv(List<Object> search) throws IOException {
-        FileWriter outputfile = new FileWriter("D:\\Projects\\JsonTree\\src\\main\\resources\\tst.csv");
-        CSVWriter writer = new CSVWriter(outputfile);
+    static void readJsonWriteCsv(Map<Object, Object> map) throws IOException {
+        FileWriter outputFile = new FileWriter("D:\\Projects\\JsonTree\\src\\main\\resources\\tst" + countFile + ".csv");
+        CSVWriter writer = new CSVWriter(outputFile);
 
-        for (Object o : search) {
-            System.out.println(o);
+        String[] keys = map.keySet().toArray(new String[0]);
+        String[] values = new String[map.size()];
+
+        Object[] checkNull = map.values().toArray();
+
+        int count = 0;
+        for (Object o : checkNull) {
+            if (o.equals(null)) {
+                values[count] = "null";
+            } else {
+                values[count] = o.toString();
+            }
+            count++;
         }
 
-        List<String> strings = search.stream()
-                .map(object -> Objects.toString(object, null)).toList();
-
-        String[] str = strings.stream().toArray(String[]::new);
-
-        writer.writeNext(str);
+        writer.writeNext(keys);
+        writer.writeNext(values);
         writer.close();
-
+        countFile++;
     }
 }
