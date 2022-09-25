@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) throws IOException, ParseException {
@@ -19,16 +20,16 @@ public class Main {
         String jsonString = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
         JSONObject jsonObject = new JSONObject(jsonString);
         JSONArray arrayList = jsonObject.getJSONArray("data");
+        List<Object> objects = new ArrayList<>();
 
         for (int i = 0; i < arrayList.length(); i++) {
             JSONObject search = (JSONObject) arrayList.get(i);
-            analyze(search);
+            objects.addAll(analyze(search));
+            readJsonWriteCsv(objects);
         }
-
-
     }
 
-    private static void analyze(JSONObject search) {
+    private static List<Object> analyze(JSONObject search) {
         List<Object> objectList = new ArrayList<>();
         Set<String> keys = search.keySet();
 
@@ -36,9 +37,7 @@ public class Main {
             objectList.addAll(checkKeysHaveObjectOrArray(key, search));
         }
 
-        for(Object o : objectList) {
-            System.out.println(o);
-        }
+        return objectList;
     }
 
     private static List<Object> checkKeysHaveObjectOrArray(String key, JSONObject search) {
@@ -63,21 +62,30 @@ public class Main {
         List<Object> objectList = new ArrayList<>();
         for (int i = 0; i < array.length(); i++) {
 
-            if (array.get(0).getClass().equals(JSONObject.class)) {
-                JSONObject search = (JSONObject) array.get(0);
+            if (array.get(i).getClass().equals(JSONObject.class)) {
+                JSONObject search = (JSONObject) array.get(i);
                 analyze(search);
             }
 
-            objectList.add(i, array.get(i));
         }
 
         return objectList;
     }
 
-    static void readJsonWriteCsv(JSONObject search) throws IOException {
+    static void readJsonWriteCsv(List<Object> search) throws IOException {
         FileWriter outputfile = new FileWriter("D:\\Projects\\JsonTree\\src\\main\\resources\\tst.csv");
         CSVWriter writer = new CSVWriter(outputfile);
 
+        for (Object o : search) {
+            System.out.println(o);
+        }
+
+        List<String> strings = search.stream()
+                .map(object -> Objects.toString(object, null)).toList();
+
+        String[] str = strings.stream().toArray(String[]::new);
+
+        writer.writeNext(str);
         writer.close();
 
     }
