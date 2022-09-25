@@ -23,40 +23,44 @@ public class Main {
         for (int i = 0; i < arrayList.length(); i++) {
             JSONObject search = (JSONObject) arrayList.get(i);
             analyze(search);
-            //readJsonWriteCsv(search);
         }
 
 
     }
 
     private static void analyze(JSONObject search) {
+        List<Object> objectList = new ArrayList<>();
         Set<String> keys = search.keySet();
 
         for (String key : keys) {
-            checkKeysHaveObjectOrArray(key, search);
+            objectList.addAll(checkKeysHaveObjectOrArray(key, search));
         }
 
+        for(Object o : objectList) {
+            System.out.println(o);
+        }
     }
 
-    private static void checkKeysHaveObjectOrArray(String key, JSONObject search) {
-        List<Object> obj = new ArrayList<>();
+    private static List<Object> checkKeysHaveObjectOrArray(String key, JSONObject search) {
+        List<Object> objectList = new ArrayList<>();
         int count = 0;
         if (search.get(key).getClass() == JSONArray.class) {
             JSONArray array = (JSONArray) search.get(key);
 
             if (array.length() != 0) {
-                checkValue(array);
+                objectList.addAll(checkValue(array));
             }
         } else {
-            obj.add(count, key);
+            objectList.add(count, key);
             count++;
-            System.out.println(obj.get(0));
         }
 
+
+        return objectList;
     }
 
-    static Object[] checkValue(JSONArray array) {
-        Object[] values = new Object[array.length()];
+    static List<Object> checkValue(JSONArray array) {
+        List<Object> objectList = new ArrayList<>();
         for (int i = 0; i < array.length(); i++) {
 
             if (array.get(0).getClass().equals(JSONObject.class)) {
@@ -64,12 +68,10 @@ public class Main {
                 analyze(search);
             }
 
-            values[i] = array.get(i);
+            objectList.add(i, array.get(i));
         }
 
-        System.out.println(Arrays.toString(values));
-        return values;
-
+        return objectList;
     }
 
     static void readJsonWriteCsv(JSONObject search) throws IOException {
