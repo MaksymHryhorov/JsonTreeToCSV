@@ -1,0 +1,23 @@
+*.jar
+*.war
+*.ear
+
+# Intellij
+.idea/
+*.iml
+*.iws
+
+# Maven
+log/
+target/
+
+# Inclusions
+!lib/**
+
+# Compiled Files
+*.class
+bin/
+build/
+/bin1/
+java/build/**
+src/main/resources/**
